@@ -1,70 +1,66 @@
-# Getting Started with Create React App
+## React-zero2one
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+### 开发点记录
 
-## Available Scripts
+#### setState 同步还是异步
+setState 不是异步的，是由于 state 的处理一般发生在声明周期变化的时候，因此有一种 setState 是异步的现象。
 
-In the project directory, you can run:
+- 当 setState 传入的是一个对象时，会合并多个相同属性的操作，以最后一次的为准
+```js
+this.setState({
+    count: this.state.count + 2
+})
+this.setState({
+    count: this.state.count + 1
+})
+```
+上述操作，每次加1，而不是加2。
+原因是每次 setState，由于生命周期不会变化，因此 state 还是旧值。
+- 当传入一个函数时，不会合并
+```js
+this.setState((preState, props) => ({
+    count: preState.count + 1
+}))
+this.setState((preState, props) => ({
+    count: preState.count + 2
+}))
+```
+- 当两种方式共存时候如果传入对象的是最后一个，合并操作，执行最后一个的操作，如果最后一个传入的是函数，则向前找到最后一个传入对象的，一起执行。
 
-### `yarn start`
+```js
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+this.setState((preState, props) => ({
+    count: preState.count + 1
+}))
+this.setState((preState, props) => ({
+    count: preState.count + 2
+}))
+// this.setState({
+//     count: this.state.count + 2
+// })
+this.setState({
+    count: this.state.count + 1
+})
+this.setState((preState, props) => ({
+    count: preState.count + 2
+}))
+this.setState((preState, props) => ({
+    count: preState.count + 3
+}))
+```
+上述操作，每次加6
+- setState 传入表达式也会合并
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+#### 生命周期
+生命周期可以分为挂载、更新和销毁三个阶段
+- 挂载阶段 CDM 只会执行一次
+- 更新阶段
+  - CWRP 组件接受新的 prop 时候被调用
+  - static getDerivedStateFromProps(nextProps, prevState)
+  - SCU
+  - CDU 组件更新后执行
+- 销毁阶段 CWU
 
-### `yarn test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `yarn build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `yarn eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+#### 17 升级
+- useEffect 清理操作由同步变成异步，清理的时候 react 会立即释放资源，不会阻塞 ui
+- jsx 不能返回 undefined
